@@ -1,0 +1,13 @@
+<div>
+  <h3>Car Description</h3>
+<ul>
+  <li>Make : {{car.make}}</li>
+  <li>Model : {{car.model}}</li>
+  <li>Year : {{car.year}}</li>
+  <li>Color : {{car.color}}</li>
+  <li>Description : {{car.description}}</li>
+  <li>History : {{car.history}}</li>
+</ul>
+<span *ngIf="show"> <button class="btn btn-primary btn-sm button" (click)="Buy()">Buy</button></span>
+<button class="btn btn-primary btn-sm button" (click)="Back()" >Back</button>
+</div>

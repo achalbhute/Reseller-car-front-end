@@ -1,0 +1,13 @@
+
+.left {
+    float: left;
+    width: 24%;
+    margin-right: 15px;
+}
+.right {
+    float: left;
+    width: 70%;
+}
+.this{
+    visibility: true;
+}
