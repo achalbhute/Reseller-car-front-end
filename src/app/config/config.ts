@@ -1,3 +1,3 @@
 export default {
-    baseUrl: 'http://localhost:3000/'
+    baseUrl: 'https://infinite-shelf-57013.herokuapp.com/'
 }
