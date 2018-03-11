@@ -1,0 +1,401 @@
+diff --git a/src/app/app.component.css b/src/app/app.component.css
+index 259534e..ffee1b0 100644
+--- a/src/app/app.component.css
++++ b/src/app/app.component.css
+@@ -10,4 +10,17 @@
+ }
+ .this{
+     visibility: true;
+-}
+\ No newline at end of file
++}
++.clearfix:after {
++    visibility: hidden;
++    display: block;
++    font-size: 0;
++    content: " ";
++    clear: both;
++    height: 0;
++  }
++  .clearfix { display: inline-block; }
++  /* start commented backslash hack \*/
++  * html .clearfix { height: 1%; }
++  .clearfix { display: block; }
++  /* close commented backslash hack */
+\ No newline at end of file
+diff --git a/src/app/app.component.html b/src/app/app.component.html
+index 7631d02..48e9558 100644
+--- a/src/app/app.component.html
++++ b/src/app/app.component.html
+@@ -1,9 +1,9 @@
+-<div class="container" style="margin-top: 3%;">
+-  <h1>Car Seller</h1>
+-  <div (onLogin)="show()"> <button  *ngIf="showButton" (click)="logout()">Logout</button></div>
+- 
++<div class="container clearfix" style="margin-top: 3%;">
++  <h1 style="float: left;">Car Seller</h1>
++  <button *ngIf="showButton" (click)="logout()" style="float: right;">Logout</button>
++
+ </div>
+ <hr>
+ <div class='container'>
+   <router-outlet></router-outlet>
+-</div>
++</div>
+\ No newline at end of file
+diff --git a/src/app/app.component.ts b/src/app/app.component.ts
+index 981ab8b..fd16c70 100644
+--- a/src/app/app.component.ts
++++ b/src/app/app.component.ts
+@@ -1,32 +1,33 @@
+-import { Component,OnInit } from '@angular/core';
++import { Component, OnInit } from '@angular/core';
+ import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+ import { UserServiceService } from './user-service.service';
+ 
+ @Component({
+-  selector: 'app-root',
+-  templateUrl: './app.component.html',
+-  styleUrls: ['./app.component.css'],
+-  providers: [UserServiceService]
++    selector: 'app-root',
++    templateUrl: './app.component.html',
++    styleUrls: ['./app.component.css'],
++    providers: [UserServiceService]
+ })
+-export class AppComponent implements OnInit  {
+-  title = 'app';
+-   showButton =false;
+-  constructor(private route: ActivatedRoute,private router: Router,private userServiceService: UserServiceService){
+-}
+-logout(){
+- this.userServiceService.logOut();
+- //this.show = false;
+-  this.router.navigate(['/login']);
+-}
+-ngOnInit() {
+-//   if(!localStorage.getItem('token')){
+-//     this.show= false;
+-// }
+-// else
+-// this.show = true;
+-}
+-show(){
+-  this.showButton= true;
+-}
++export class AppComponent implements OnInit {
++    title = 'app';
++    showButton = false;
++    constructor(private route: ActivatedRoute, private router: Router,
++         private userServiceService: UserServiceService) {
++        userServiceService.changeEmitted$.subscribe(res=>{
++            if(res.loggedIn){
++                this.showButton = true;
++            }
++        });
++        window.onbeforeunload = function(e) {
++            localStorage.clear();
++          };
++    }
++    logout() {
++        this.userServiceService.logOut();
++        this.showButton = false;
++        this.router.navigate(['/login']);
++    }
++    ngOnInit() {
++    }
+ }
+ 
+diff --git a/src/app/car-detail/car-detail.component.html b/src/app/car-detail/car-detail.component.html
+index 83b6c52..9b6acaf 100644
+--- a/src/app/car-detail/car-detail.component.html
++++ b/src/app/car-detail/car-detail.component.html
+@@ -1,4 +1,4 @@
+-<div>
++<div *ngIf="car">
+   <h3>Car Description</h3>
+ <ul>
+   <li>Make : {{car.make}}</li>
+diff --git a/src/app/car-detail/car-detail.component.ts b/src/app/car-detail/car-detail.component.ts
+index f8ca4f2..a13f5b7 100644
+--- a/src/app/car-detail/car-detail.component.ts
++++ b/src/app/car-detail/car-detail.component.ts
+@@ -4,43 +4,42 @@ import { ChangeDetectorRef } from '@angular/core';
+ import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+ 
+ @Component({
+-  selector: 'app-car-detail',
+-  templateUrl: './car-detail.component.html',
+-  styleUrls: ['./car-detail.component.css'],
+-  providers: [CarserviceService]
++    selector: 'app-car-detail',
++    templateUrl: './car-detail.component.html',
++    styleUrls: ['./car-detail.component.css'],
++    providers: [CarserviceService]
+ })
+ export class CarDetailComponent implements OnInit {
+-  show : boolean = true;
+- car: {};
+-  constructor(private route: ActivatedRoute,private router: Router,private carserviceService: CarserviceService, private ref: ChangeDetectorRef) {
+-    if(!localStorage.getItem('token')){
+-      this.router.navigate(['/login']);
+-    }
+-    let user = JSON.parse(localStorage.getItem('user'));
+-    if(user.role == 'seller'){
+-      this.show=false;
+-    }
+-    
+-    let id = this.route.snapshot.paramMap.get('id');
+-            this.carserviceService.getCar(id).subscribe(car => {
+-              console.log(car);
+-                this.car = car;
+-            });
+-    
++    show: boolean = true;
++    car: {};
++    constructor(private route: ActivatedRoute, private router: Router, private carserviceService: CarserviceService, private ref: ChangeDetectorRef) {
++        if (!localStorage.getItem('token')) {
++            this.router.navigate(['/login']);
++        }
++        let user = JSON.parse(localStorage.getItem('user'));
++        if (user && user.role == 'seller') {
++            this.show = false;
+         }
+ 
+-ngOnInit() {
+-}
++        let id = this.route.snapshot.paramMap.get('id');
++        this.carserviceService.getCar(id).subscribe(car => {
++            this.car = car;
++        });
+ 
+-Buy(){
+-  let id = this.route.snapshot.paramMap.get('id');
+-  this.carserviceService.buyCar(id, 1).subscribe(success => {
+-      alert('Buyed');
+-      this.Back();
+-  });
+-}
++    }
+ 
+-Back(){
+-  this.router.navigate(['/']);
+-}
++    ngOnInit() {
++    }
++
++    Buy() {
++        let id = this.route.snapshot.paramMap.get('id');
++        this.carserviceService.buyCar(id, 1).subscribe(success => {
++            alert('Car Bought!');
++            this.Back();
++        });
++    }
++
++    Back() {
++        this.router.navigate(['/']);
++    }
+ }
+diff --git a/src/app/car-list/car-list.component.ts b/src/app/car-list/car-list.component.ts
+index 7c36870..37c0ffc 100644
+--- a/src/app/car-list/car-list.component.ts
++++ b/src/app/car-list/car-list.component.ts
+@@ -18,13 +18,14 @@ export class CarListComponent implements OnInit {
+       this.router.navigate(['/login']);
+     }
+     let user = JSON.parse(localStorage.getItem('user'));
+-    if(user.role == 'buyer'){
++    if(user && user.role == 'buyer'){
+       this.show=false;
+     }
+     this.carserviceService.getCar(null).subscribe(car => {
+-              console.log(car);
++              if(car && car.length >0){
+                 this.cars = car;
+                 this.carserviceService.selectedCarId= car[0].id;
++              }
+             });
+         }
+   ngOnInit() {
+diff --git a/src/app/carservice.service.ts b/src/app/carservice.service.ts
+index a63461c..0647316 100644
+--- a/src/app/carservice.service.ts
++++ b/src/app/carservice.service.ts
+@@ -3,10 +3,10 @@ import {Http} from '@angular/http';
+ import 'rxjs/add/operator/map';
+ import { Response } from '@angular/http';
+ import { Headers, RequestOptions } from '@angular/http';
+-
++import config from './config/config'
+ @Injectable()
+ export class CarserviceService {
+-baseUrl = 'http://localhost:3000/cars/';
++baseUrl = config.baseUrl+'cars/';
+ 
+ selectedCarId =1;
+ constructor(private http: Http) { 
+diff --git a/src/app/config/config.ts b/src/app/config/config.ts
+new file mode 100644
+index 0000000..ecf0f28
+--- /dev/null
++++ b/src/app/config/config.ts
+@@ -0,0 +1,3 @@
++export default {
++    baseUrl: 'http://localhost:3000/'
++}
+\ No newline at end of file
+diff --git a/src/app/login/login.component.html b/src/app/login/login.component.html
+index dfd6b59..f19e1fa 100644
+--- a/src/app/login/login.component.html
++++ b/src/app/login/login.component.html
+@@ -5,7 +5,7 @@
+      <tr>  
+       <td> Username : </td>
+       <td> <input type="text" name="username" ngModel   required ></td></tr>
+-     <tr><td> Password : </td><td> <input type="text" name="password" ngModel  ></td></tr>
++     <tr><td> Password : </td><td> <input type="password" name="password" ngModel  ></td></tr>
+    </table> </div>
+   
+     <button type="submit" >Submit</button>
+diff --git a/src/app/login/login.component.ts b/src/app/login/login.component.ts
+index 0b508b1..97de937 100644
+--- a/src/app/login/login.component.ts
++++ b/src/app/login/login.component.ts
+@@ -8,11 +8,11 @@ import { NgForm } from '@angular/forms';
+   selector: 'app-login',
+   templateUrl: './login.component.html',
+   styleUrls: ['./login.component.css'],
+-  providers: [UserServiceService]
++  providers: []
+ })
+ export class LoginComponent implements OnInit {
+-  @Output() onLogin: EventEmitter<any> = new EventEmitter<any>();
+-  constructor(private route: ActivatedRoute,private router: Router,private userServiceService: UserServiceService,
++  constructor(private route: ActivatedRoute,private router: Router,
++    private userServiceService: UserServiceService,
+      private ref: ChangeDetectorRef) 
+   { }
+ 
+@@ -21,10 +21,10 @@ export class LoginComponent implements OnInit {
+   login(form: NgForm){
+     let creds= {};
+    creds['username'] =form.value['username'];
+-   creds['password'] =form.value['password'];console.log('from login');
++   creds['password'] =form.value['password'];
+     this.userServiceService.login(creds).subscribe(success => {
+-      this.onLogin.emit(true);
+       if(localStorage.getItem('token')){
++        this.userServiceService.emitChange({loggedIn:true});
+         this.router.navigate(['/']);
+       }else
+       alert('Wrong Username/ Password');
+diff --git a/src/app/user-service.service.ts b/src/app/user-service.service.ts
+index 4b9debe..ecdc380 100644
+--- a/src/app/user-service.service.ts
++++ b/src/app/user-service.service.ts
+@@ -3,53 +3,62 @@ import { Http } from '@angular/http';
+ import 'rxjs/add/operator/map';
+ import { Response } from '@angular/http';
+ import { Headers, RequestOptions } from '@angular/http';
++import { Observable } from 'rxjs/Observable';
++import { Subject } from 'rxjs/Subject';
++import config from './config/config'
++
+ 
+ @Injectable()
+ export class UserServiceService {
+-  baseUrl = 'http://localhost:3000/';
+-  constructor(private http: Http) { }
++    baseUrl = config.baseUrl;
++    constructor(private http: Http) { }
+ 
+-  login(creds) {
+-    let url = this.baseUrl +'login';
+-    let headers = new Headers();
+-    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+-    let urlSearchParams = new URLSearchParams();
+-    urlSearchParams.append('username', creds.username);
+-    urlSearchParams.append('password', creds.password);
+-    let body = urlSearchParams.toString();
+-    return this.http.post(url, body,{
+-      headers: headers})
+-      .map(res => { 
+-        console.log('from login inn');
+-        console.log(res);
+-        let resp = res.json();
+-        if (resp.success && resp.token) {
+-          localStorage.setItem('token', resp.token);
+-          localStorage.setItem('user', JSON.stringify(resp.user));
+-        }
+-        return resp;
+-      });
+-  }
+-  getUser() {
+-    let url = this.baseUrl + 'me';
+-    let headers = new Headers();
+-    const token = localStorage.getItem('token');
+-    if(token){
+-      headers.append('x-access-token',token);
++    login(creds) {
++        let url = this.baseUrl + 'login';
++        let headers = new Headers();
++        headers.append('Content-Type', 'application/x-www-form-urlencoded');
++        let urlSearchParams = new URLSearchParams();
++        urlSearchParams.append('username', creds.username);
++        urlSearchParams.append('password', creds.password);
++        let body = urlSearchParams.toString();
++        return this.http.post(url, body, {
++            headers: headers
++        })
++        .map(res => {
++            let resp = res.json();
++            if (resp.success && resp.token) {
++                localStorage.setItem('token', resp.token);
++                localStorage.setItem('user', JSON.stringify(resp.user));
++            }
++            return resp;
++        });
+     }
+-    return this.http.get(url,  {
+-      headers: headers
+-    })
+-      .map(res => {
+-        let resp = res.json();
+-        if (resp.id) {
+-          localStorage.setItem('user', JSON.stringify(resp));
++    getUser() {
++        let url = this.baseUrl + 'me';
++        let headers = new Headers();
++        const token = localStorage.getItem('token');
++        if (token) {
++            headers.append('x-access-token', token);
+         }
+-        return resp;
+-      });
+-  }
+-  logOut()
+-  {
+-    localStorage.clear();
+-  }
++        return this.http.get(url, {
++            headers: headers
++        })
++            .map(res => {
++                let resp = res.json();
++                if (resp.id) {
++                    localStorage.setItem('user', JSON.stringify(resp));
++                }
++                return resp;
++            });
++    }
++    logOut() {
++        localStorage.clear();
++    }
++    ////////////////////////////
++    //communication
++    private emitChangeSource = new Subject<any>();
++    changeEmitted$ = this.emitChangeSource.asObservable();
++    emitChange(change: any) {
++        this.emitChangeSource.next(change);
++    }
+ }

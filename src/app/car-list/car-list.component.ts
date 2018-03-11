@@ -18,13 +18,14 @@ export class CarListComponent implements OnInit {
       this.router.navigate(['/login']);
     }
     let user = JSON.parse(localStorage.getItem('user'));
-    if(user.role == 'buyer'){
+    if(user && user.role == 'buyer'){
       this.show=false;
     }
     this.carserviceService.getCar(null).subscribe(car => {
-              console.log(car);
+              if(car && car.length >0){
                 this.cars = car;
                 this.carserviceService.selectedCarId= car[0].id;
+              }
             });
         }
   ngOnInit() {

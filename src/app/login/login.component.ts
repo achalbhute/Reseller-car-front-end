@@ -8,11 +8,11 @@ import { NgForm } from '@angular/forms';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  providers: [UserServiceService]
+  providers: []
 })
 export class LoginComponent implements OnInit {
-  @Output() onLogin: EventEmitter<any> = new EventEmitter<any>();
-  constructor(private route: ActivatedRoute,private router: Router,private userServiceService: UserServiceService,
+  constructor(private route: ActivatedRoute,private router: Router,
+    private userServiceService: UserServiceService,
      private ref: ChangeDetectorRef) 
   { }
 
@@ -21,10 +21,10 @@ export class LoginComponent implements OnInit {
   login(form: NgForm){
     let creds= {};
    creds['username'] =form.value['username'];
-   creds['password'] =form.value['password'];console.log('from login');
+   creds['password'] =form.value['password'];
     this.userServiceService.login(creds).subscribe(success => {
-      this.onLogin.emit(true);
       if(localStorage.getItem('token')){
+        this.userServiceService.emitChange({loggedIn:true});
         this.router.navigate(['/']);
       }else
       alert('Wrong Username/ Password');

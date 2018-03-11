@@ -3,10 +3,10 @@ import {Http} from '@angular/http';
 import 'rxjs/add/operator/map';
 import { Response } from '@angular/http';
 import { Headers, RequestOptions } from '@angular/http';
-
+import config from './config/config'
 @Injectable()
 export class CarserviceService {
-baseUrl = 'http://localhost:3000/cars/';
+baseUrl = config.baseUrl+'cars/';
 
 selectedCarId =1;
 constructor(private http: Http) { 
