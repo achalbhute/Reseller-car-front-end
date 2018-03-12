@@ -32,7 +32,8 @@ export class CarAddComponent implements OnInit {
    car['history']=form.value['history'];    
     car['seller_id'] =2;
     this.carserviceService.postCar(car).subscribe(success => {
-        alert(success);
+        alert("Car added.");
+        this.router.navigate(['/']);
     });
   }
 }
